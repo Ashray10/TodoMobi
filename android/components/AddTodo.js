@@ -1,8 +1,7 @@
 import React from 'react'
-import { SafeAreaView, StyleSheet, TextInput, Text, View, TouchableOpacity, Button } from "react-native";
+import { SafeAreaView, StyleSheet, TextInput, Text, View, TouchableOpacity } from "react-native";
 import DatePicker from 'react-native-date-picker'
-// import AsyncStorage from '@react-native-async-storage/async-storage';
-import { AsyncStorage } from 'react-native';
+import { insertNewTodo } from './Schema/Realm';
 
 
 export default function AddTodo({ route, navigation }) {
@@ -10,46 +9,34 @@ export default function AddTodo({ route, navigation }) {
   const [deadline, setDeadline] = React.useState(new Date());
   const [open, setOpen] = React.useState(false)
   const [date, setDate] = React.useState(new Date());
+  const [work, setWork] = React.useState(true);
 
   const {email}=route.params;
 
   const submit = async() =>{
     try {
-        const details = {title: title,
-                        deadline: deadline,
-                        status: false}
-        const temp = await AsyncStorage.getItem(JSON.stringify(email))
-        var userData;
-        if(temp!=null){
-            userData = JSON.parse(temp);
-        }else{
-            userData = []
-        }
-        userData.push(details);
-        await AsyncStorage.setItem(
-          JSON.stringify(email), JSON.stringify(userData)
-        );
-        // console.log(await AsyncStorage.getItem("user"))
-        navigation.navigate('TodoPage', {email: email})
+      const details = {title: title, deadline: deadline.toString(), status: "false", type: work}
+      const responce = await insertNewTodo(details);
+      console.log(responce);
+      navigation.navigate('TodoPage', {email: email})
     }catch (error) {
-        console.log(error);
+      console.log(error);
     }
   }
-  const back = () =>{
-    console.log("back");
-  }
-
   const helper = (date)=>{
     setDate(date);
     let day = date.getDay();
     let month = date.getMonth();
     let year = date.getFullYear();
-    let finalDate = day + '/' + month + '/' + year;
-    // console.log(finalDate);
-    setDeadline(finalDate);
+    let hour = date.getHours();
+    let min = date.getMinutes();
+    let sec = date.getSeconds();
+    
+    let finalDate = hour + ':' + min +  ':' + sec + '\t' + day + '/' + month + '/' + year;
+    console.log(date.getMinutes());
+    setDeadline(date.toString());
+    // setDeadline(finalDate);
   }
-
-//   const 
   
   return (
     <SafeAreaView style={styles.box}>
@@ -70,24 +57,24 @@ export default function AddTodo({ route, navigation }) {
                 style={styles.input}
                 value={deadline}
                 placeholder="Deadline"
-                // onChangeText={setDeadline}
                 onPressIn={() => setOpen(true)}
             />
             <DatePicker
                 modal
                 open={open}
                 date={date}
-                mode="date"
-                onConfirm={
-                    (date) => {
+                minimumDate={new Date()}
+                onConfirm={(date) => {
                     helper(date)
                     setOpen(false)
-                }
-                }
+                }}
                 onCancel={() => {
                     setOpen(false)
                 }}
             />
+            <TouchableOpacity onPress={()=>setWork(!work)} style={work?styles.work:styles.personal}>
+                <Text>{work?"Work":"Personal"}</Text>
+            </TouchableOpacity>
             <TouchableOpacity onPress={submit} style={styles.Button}>
                 <Text>Add</Text>
             </TouchableOpacity>
@@ -140,6 +127,27 @@ const styles = StyleSheet.create({
     backgroundColor:"#841584",
     height:40,
     width: 200,
+    justifyContent:"center",
+    alignItems: 'center',
+  },
+  work:{
+    backgroundColor:"#29913f",
+    height:40,
+    width: 100,
+    justifyContent:"center",
+    alignItems: 'center',
+  },
+  personal:{
+    backgroundColor:"#29913f",
+    height:40,
+    width: 100,
+    justifyContent:"center",
+    alignItems: 'center',
+  },
+  work:{
+    backgroundColor:"#34c6eb",
+    height:40,
+    width: 100,
     justifyContent:"center",
     alignItems: 'center',
   }

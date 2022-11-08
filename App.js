@@ -14,16 +14,16 @@ export default App = () => {
     <NavigationContainer>
     <Stack.Navigator initialRouteName= "LoginPage">
       <Stack.Screen 
-      name="LoginPage" component={LoginPage} 
+      name="LoginPage" component={LoginPage} options={{headerShown:false}}
       />
       <Stack.Screen
-        name="AddTodo" component={AddTodo}
+        name="AddTodo" component={AddTodo} options={{headerShown:false}}
       />
       <Stack.Screen 
-      name="TodoPage" component={TodoPage} 
+      name="TodoPage" component={TodoPage} options={{headerShown:false}}
       />
       <Stack.Screen 
-      name="SignUp" component={SignupPage} 
+      name="SignUp" component={SignupPage} options={{headerShown:false}}
       />
     </Stack.Navigator>
   </NavigationContainer>
