@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { SafeAreaView, Text, View, TouchableOpacity, FlatList, StyleSheet, Image } from 'react-native';
+import { SafeAreaView, Text, View, TouchableOpacity, FlatList, StyleSheet, Image, AsyncStorage } from 'react-native';
 import { deleteAllTodos, queryAllTodos, updateTodos } from './Schema/Realm';
 
 export default function TodoPage({route, navigation}) {
@@ -17,20 +17,25 @@ export default function TodoPage({route, navigation}) {
   const {email}=route.params;
 
   const getTodo=async()=>{
-    const value= await queryAllTodos();
-    // console.log(value);
+    const allTodo= await queryAllTodos();
+    console.log("aaaaaaaaaaa");
+    const value = allTodo.filtered(`userEmail=='${email}'`);
     setTodos(value.filtered("status=='false'"));
     setDone(value.filtered("status=='true'"));
     // console.log(todos.filtered("deadline>new Date()"));
   }
   useEffect(()=>{
     getTodo()
-    console.log("Im here")
   },[])
+
+  handleDelete=()=>{
+    AsyncStorage.removeItem("userDetails");
+    navigation.navigate("LoginPage");
+  }
   
   const Item = ({item}) => {
    return(
-     <TouchableOpacity style={(page==="Todo")?styles.rowTodo:styles.rowDone} 
+     <TouchableOpacity style={(page===curr.Todo)?styles.rowTodo:(page===curr.Done)?styles.rowDone:styles.rowOverdue} 
      onPress={async()=>{
       const res = await updateTodos(item)
       getTodo()
@@ -48,34 +53,44 @@ export default function TodoPage({route, navigation}) {
      </TouchableOpacity>
    );
  }
- 
+
  return (
    <SafeAreaView>
-     <View style={(page==="Todo")?styles.boxTodo:
-            styles.boxDone}>
-              
-       <Text style={styles.header}>Welcome {JSON.stringify(email)} </Text>
-       <Text style={styles.smallHeader}>Todo App</Text>
+     <View style={(page===curr.Todo)?styles.boxTodo:(page===curr.Done)?
+            styles.boxDone:styles.boxOverdue}>
+      <View style={styles.header}>  
+        <Text style={styles.headerText}>Welcome {JSON.stringify(email)} </Text>
+        <TouchableOpacity onPress={()=>handleDelete()} style={styles.logout}>
+          <Text style={styles.headerText}>LogOut</Text></TouchableOpacity>
+      </View>
+      <Text style={styles.smallHeader}>Todo App</Text>
        
+       {page===curr.Todo && 
        <FlatList
-         data={
-          (page==="Todo")
-          ?todos:done
-          // ?todos:{(page==="Done")?done:overdue}
-          // if(page===curr.Todo){
-          //   return todos;
-          // }else{
-          //   return done;
-          // }
-        }
+         data={todos}
          renderItem={Item}
          style={styles.list}
        />
+      }
+      { page===curr.Done && 
+      <FlatList
+         data={done}
+         renderItem={Item}
+         style={styles.list}
+       />
+      }
+      { page===curr.Overdue && 
+      <FlatList
+         data={overdue}
+         renderItem={Item}
+         style={styles.list}
+       />
+      }
        
        <View style={styles.statusBar}>
         <TouchableOpacity onPress={()=>{setPage("Todo")}}>
           <Text style={(page==="Todo")?styles.statusTodo:
-            styles.statusText} >Peding</Text>
+            styles.statusText} >Pending</Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={()=>{setPage("Done")}}>
           <Text style={(page==="Done")?styles.statusDone:
@@ -103,7 +118,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#fffdfc",
     borderRadius: 8,
     borderLeftColor: "#5341a3",
-    borderLeftWidth: 5,
+    borderLeftWidth: 7,
     margin: 6,
     height: 80
   },
@@ -113,7 +128,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#fffdfc",
     borderRadius: 8,
     borderLeftColor: "#29913f",
-    borderLeftWidth: 5,
+    borderLeftWidth: 10,
     margin: 6,
     height: 80
   },
@@ -138,15 +153,17 @@ const styles = StyleSheet.create({
     paddingTop: 40,
     borderRadius: 15
   },
-  header:{
+  headerText:{
     fontSize: 25,
     margin: 20,
+    color: "#f7f5f5"
   },
   smallHeader:{
     fontSize: 30,
     margin: 20,
     marginBottom: 60,
-    alignSelf: "center"
+    alignSelf: "center",
+    color: "#f7f5f5"
   },
   statusBar:{
     flexDirection: "row",
@@ -158,12 +175,13 @@ const styles = StyleSheet.create({
     right: "0%",
     borderWidth:1,
     height: 50,
-    borderRadius: 10,
+    borderRadius: 15,
     margin: 20,
     backgroundColor: "#fffdfc",
   },
   statusText:{
-    fontSize: 20
+    fontSize: 20,
+    fontWeight: "500"
   },
   listText:{
     fontSize: 18,
@@ -174,14 +192,23 @@ const styles = StyleSheet.create({
   boxDone:{
     backgroundColor: "#29913f"
   },
+  boxOverdue:{
+    backgroundColor: "#bf4137"
+  },
   statusTodo:{
     fontSize: 20,
     color: "#5341a3",
-    // backgroundColor: "#34c6eb"
+    fontWeight: "800"
   },
   statusDone:{
     fontSize: 20,
-    color: "#29913f"
+    color: "#29913f",
+    fontWeight: "800"
+  },
+  statusOverdue:{
+    fontSize: 20,
+    color: "#bf4137",
+    fontWeight: "800"
   },
   img:{
     width: 80,
@@ -192,5 +219,13 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     width: "80%"
+  },
+  header:{
+    flexDirection: "row",
+    justifyContent: "space-around"
+  },
+  logout:{
+    // backgroundColor:"#b34b44"
+    
   }
 })

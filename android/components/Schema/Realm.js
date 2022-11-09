@@ -32,16 +32,16 @@
 
 import Realm from "realm";
 
-export const TODO_SCHEMA = "Tasks3";
+export const TODO_SCHEMA = "Tasks4";
 
 const TodoSchema = {
     name: TODO_SCHEMA,
     properties: {
-    //   _id: "int",
-      title: "string",
-      deadline: "string?",
-      status: "string",
-      type: "bool"
+        userEmail: "string",
+        title: "string",
+        deadline: "string?",
+        status: "string",
+        type: "bool"
     },
     primaryKey: "title",
 };
@@ -73,7 +73,6 @@ export const insertNewTodo = newTodo => new Promise((resolve, reject) => {
 export const queryAllTodos = () => new Promise((resolve, reject) => {
     Realm.open(databaseOptions).then(realm => {
         let allTodos = realm.objects(TODO_SCHEMA);
-        // console.log(allTodos);
         resolve(allTodos);
     }).catch(error => {
         reject(error);

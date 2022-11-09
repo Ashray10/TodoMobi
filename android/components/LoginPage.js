@@ -1,6 +1,7 @@
 import React from "react";
-import { SafeAreaView, StyleSheet, TextInput, Button, Text, View, Image, TouchableOpacity, Alert } from "react-native";
-// import nav 
+import { useEffect } from "react";
+import { SafeAreaView, StyleSheet, TextInput, Text, View, Image, TouchableOpacity, Alert } from "react-native";
+import { AsyncStorage } from "react-native";
 
 export default LoginPage = ({navigation}) => {
   const [email, setEmail] = React.useState();
@@ -8,16 +9,10 @@ export default LoginPage = ({navigation}) => {
   const [secure, setSecure] = React.useState(true);
   const [verify, setVerify] = React.useState(true);
 
-  const users = {
-    email: "ash@gmail.com",
-    password: "pass"
-  }
-
   validate = (text) => {
     console.log(text);
     let reg = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w\w+)+$/;
     setEmail(text);
-    // console.log(email);
     if (reg.test(text) === true) {
       setVerify(true);
     }else{
@@ -25,36 +20,23 @@ export default LoginPage = ({navigation}) => {
     }
   }
 
-  check=()=>{
-    // console.log(users);
+  async function submit(email, password){
     console.log(email);
     console.log(password);
-    if(users.email===email && users.password===password){
-      return true;
-    }else{
-      return false;
-    }
-  }
-
-  const submit = async () =>{
-    console.log("Hello");
-    // if(check()){
-    //   navigation.navigate('TodoPage')
-    // }else{
-    //   Alert.alert("Wrong Password")
-    // }
-    console.log(email);
-    console.log(password);
+    userDetails = {userEmail: email, password: password}
     await fetch(
       `http://10.0.2.2:8080/login?username=${email}&password=${password}`,
-      {
-        method: 'POST',
-      },
+      {method: 'POST'},
     )
       .then(res => {
-        // console.log(res);
+        console.log(res.status);
         if (res.status === 200) {
+          AsyncStorage.setItem('userDetails', JSON.stringify(userDetails))
           navigation.navigate('TodoPage', {email: email})
+          setEmail("")
+          setPassword("")
+        }else{
+          Alert.alert("Wrong Password")
         }
       })
       .catch(e => console.log(e));
@@ -67,6 +49,19 @@ export default LoginPage = ({navigation}) => {
   const handleSecure = () =>{
     setSecure(!secure);
   }
+
+  async function persist(){
+    const temp = await AsyncStorage.getItem("userDetails")
+    console.log(temp)
+      if(temp!=null){
+        userData = JSON.parse(temp);
+        submit(userData.userEmail, userData.password);
+      }
+  }
+
+  useEffect(()=>{
+    persist();
+  },[])
   
   return (
     <SafeAreaView style={styles.box}>
@@ -108,7 +103,7 @@ export default LoginPage = ({navigation}) => {
             style={styles.img} />
           </TouchableOpacity>
         </View>
-        <TouchableOpacity onPress={submit} style={styles.Button}>
+        <TouchableOpacity onPress={()=>submit(email, password)} style={styles.Button}>
             <Text>Login</Text>
         </TouchableOpacity>
         <Text style={styles.baseText}>
@@ -177,7 +172,6 @@ const styles = StyleSheet.create({
     width: 200,
     justifyContent:"center",
     alignItems: 'center',
-    // textDecorationColor: "#f5f7f7"
   }
 });
 

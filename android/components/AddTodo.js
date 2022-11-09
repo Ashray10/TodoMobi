@@ -15,7 +15,7 @@ export default function AddTodo({ route, navigation }) {
 
   const submit = async() =>{
     try {
-      const details = {title: title, deadline: deadline.toString(), status: "false", type: work}
+      const details = {userEmail: email.toString(), title: title, deadline: deadline.toString(), status: "false", type: work}
       const responce = await insertNewTodo(details);
       console.log(responce);
       navigation.navigate('TodoPage', {email: email})
@@ -34,7 +34,7 @@ export default function AddTodo({ route, navigation }) {
     
     let finalDate = hour + ':' + min +  ':' + sec + '\t' + day + '/' + month + '/' + year;
     console.log(date.getMinutes());
-    setDeadline(date.toString());
+    setDeadline(date.toLocaleString());
     // setDeadline(finalDate);
   }
   
